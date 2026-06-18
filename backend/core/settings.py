@@ -20,6 +20,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
+from datetime import timedelta
+
 SECRET_KEY = 'django-insecure-o1g!t^44t84y*)9pgge8#xb80#vd-l$6*1acga5^mq7l#!_5qo'
 
 # SECURITY WARNING: don't run with debug turned on in production!
@@ -133,5 +135,17 @@ REST_FRAMEWORK = {
         "rest_framework_simplejwt.authentication.JWTAuthentication",
 
     ),
+
+}
+
+SIMPLE_JWT = {
+
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
+
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+
+    "ROTATE_REFRESH_TOKENS": False,
+
+    "BLACKLIST_AFTER_ROTATION": False,
 
 }
