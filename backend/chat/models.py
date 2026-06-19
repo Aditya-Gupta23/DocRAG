@@ -33,3 +33,16 @@ class Message(models.Model):
 
 class Meta:
     ordering=["created_at"]
+
+class Document(models.Model):
+    chat=models.ForeignKey(
+        Chat,
+        on_delete=models.CASCADE,
+        related_name="documents",
+    )
+    file=models.FileField(upload_to="uploads/")
+    filename=models.CharField(max_length=255)
+    uploaded_at=models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return self.filename

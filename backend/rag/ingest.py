@@ -9,7 +9,7 @@ embeddings=HuggingFaceEmbeddings(
     model_name="sentence-transformers/all-MiniLM-L6-v2"
 )
 
-def ingest_pdf(pdf_path):
+def ingest_pdf(pdf_path,chat_id):
     source = os.path.basename(pdf_path)
     loader=PyPDFLoader(pdf_path)
     documents=loader.load()
@@ -20,6 +20,7 @@ def ingest_pdf(pdf_path):
     chunks=splitter.split_documents(documents)
     for chunk in chunks:
         chunk.metadata["source"]=source
+        chunk.metadata["chat_id"]=str(chat_id)
 
     db=Chroma(
         persist_directory=CHROMA_PATH,

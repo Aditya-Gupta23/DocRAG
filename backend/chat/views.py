@@ -8,7 +8,7 @@ from .serializers import RegisterSerializer,ChatSerializer,MessageSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.views import TokenRefreshView
 from rest_framework.permissions import IsAuthenticated
-from .models import Chat,Message
+from .models import Chat,Message,Document
 from django.shortcuts import get_object_or_404
 
 from rag.query import ask_question
@@ -120,7 +120,8 @@ class ChatMessageView(APIView):
             })
         result=ask_question(
             question=user_message,
-            chat_history=history
+            chat_history=history,
+            chat_id=chat.id
         )
         Message.objects.create(
             chat=chat,
@@ -145,4 +146,30 @@ class ChatDeleteView(APIView):
         chat.delete()
         return Response({
             "message":"chat deleted sucessfully"
+        })
+    
+class  ChatUploadView(APIView):
+    permission_classes=[IsAuthenticated]
+    def post(self,request,chat_id):
+        chat=get_object_or_404(
+            Chat,
+            id=chat_id,
+            user=request.user
+        )
+
+        upload_file=request.FILES.get("file")
+        if not upload_file:
+            return Response({"error":"No file uploaded"},
+                            status=400)
+        save_path=os.path.join(settings.MEDIA_ROOT,"uploads",upload_file.name)
+        with open(save_path,"wb+") as destination:
+            for chunk in upload_file.chunks():
+                destination.write(chunk)
+        Document.objects.create(chat=chat,file=f"uploads/{upload_file.name}",
+        filename=upload_file.name)
+
+        chunk_count=ingest_pdf(save_path,chat.id)
+        return Response({
+            "message":"PDF uploaded successfully",
+            "chunks_added":chunk_count
         })

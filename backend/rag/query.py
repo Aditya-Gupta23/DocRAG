@@ -6,14 +6,14 @@ import os
 # chat_history=[]
 
 
-def ask_question(question, chat_history):
+def ask_question(question, chat_history,chat_id):
 
     rewritten_query=rewrite_query(
         question,
         chat_history
     )
 
-    docs=retrieve_documents(rewritten_query)
+    docs=retrieve_documents(rewritten_query,chat_id)
     context="\n\n".join(doc.page_content for doc in docs)
 
     answer=generate_answer(
