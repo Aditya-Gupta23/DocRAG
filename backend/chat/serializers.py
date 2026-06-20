@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
-from .models import Chat,Message
+from .models import Chat,Message,Document
 
 class RegisterSerializer(serializers.ModelSerializer):
     password=serializers.CharField(write_only=True)
@@ -24,4 +24,9 @@ class MessageSerializer(serializers.ModelSerializer):
     class Meta:
         model=Message
         fields=["id","role","content","created_at"]
+
+class DocumentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=Document
+        fields=["id","filename","file","uploaded_at"]
 

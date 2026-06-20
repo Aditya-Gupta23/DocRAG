@@ -4,7 +4,7 @@ from django.shortcuts import render
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .serializers import RegisterSerializer,ChatSerializer,MessageSerializer
+from .serializers import RegisterSerializer,ChatSerializer,MessageSerializer,DocumentSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.views import TokenRefreshView
 from rest_framework.permissions import IsAuthenticated
@@ -111,6 +111,12 @@ class ChatMessageView(APIView):
             id=chat_id,
             user=request.user
         )
+        if chat.title=='New Chat':
+            title=user_message[:20]
+            if len(user_message)>20:
+                title+='...'
+                chat.title=title
+            chat.save()
         messages=chat.messages.all()
         history=[]
         for msg in messages:
@@ -133,7 +139,11 @@ class ChatMessageView(APIView):
             role="assistant",
             content=result["answer"]
         )
-        return Response(result)
+        return Response({
+            "answer": result["answer"],
+            "sources": result["sources"],
+            "chat_title": chat.title
+        })
     
 class ChatDeleteView(APIView):
     permission_classes=[IsAuthenticated]
@@ -173,3 +183,22 @@ class  ChatUploadView(APIView):
             "message":"PDF uploaded successfully",
             "chunks_added":chunk_count
         })
+    
+class ChatDocumentsView(APIView):
+    permission_classes=[IsAuthenticated]
+    def get(self,request,pk):
+        try:
+            chat=get_object_or_404(
+                Chat,
+                id=pk,
+                user=request.user
+            )
+        except Chat.DoesNotExist:
+            return Response({"error":"Chat not found"},status=404)
+        documents=chat.documents.all().order_by("-uploaded_at")
+        serializer = DocumentSerializer(
+            documents,
+            many=True
+        )
+
+        return Response(serializer.data)

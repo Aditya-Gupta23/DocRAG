@@ -3,7 +3,7 @@ import { useEffect, useState, useRef } from "react";
 import axiosInstance from "../api/axios";
 
 
-const ChatWindow = () => {
+const ChatWindow = ({setSidebarOpen}) => {
 
     const [input, setInput] = useState("");
     const [loading, setLoading] = useState(false)
@@ -11,7 +11,7 @@ const ChatWindow = () => {
     const [selectedFile, setSelectedFile] = useState(null)
 
     const fileInputRef = useRef(null)
-
+    const messagesEndRef = useRef(null)
 
     const selectedChat = useChatStore(
         (state) => state.selectedChat
@@ -21,28 +21,38 @@ const ChatWindow = () => {
         (state) => state.messages
     );
 
+    const documents = useChatStore(
+        (state) => state.documents
+    )
+
     const setMessages = useChatStore(
         (state) => state.setMessages
     );
+    
+    const updateChatTitle=useChatStore((state)=>state.updateChatTitle)
 
     const addMessage = useChatStore((state) => state.addMessage)
+
+    const setDocuments = useChatStore((state) => state.setDocuments)
+
 
     const handleFileClick = () => {
         fileInputRef.current.click()
     }
-    
-    const uploadPdf=async (file)=>{
-          if(!selectedChat){
+
+
+    const uploadPdf = async (file) => {
+        if (!selectedChat) {
             alert("Please create/select a chat first");
             return;
         }
         try {
             setUploading(true)
-            const formData=new FormData();
-            formData.append('file',file)
-            const response=await axiosInstance.post(`/chats/${selectedChat.id}/upload/`,formData,
+            const formData = new FormData();
+            formData.append('file', file)
+            const response = await axiosInstance.post(`/chats/${selectedChat.id}/upload/`, formData,
                 {
-                    headers:{
+                    headers: {
                         "Content-Type": "multipart/form-data"
                     }
                 }
@@ -56,7 +66,16 @@ const ChatWindow = () => {
         }
     }
 
-    const handleFileChange =async (e) => {
+    const loadDocuments = async () => {
+        try {
+            const response = await axiosInstance.get(`/chats/${selectedChat.id}/documents/`)
+            setDocuments(response.data)
+        } catch (error) {
+            console.error("Error fetching the documents", error)
+        }
+    }
+
+    const handleFileChange = async (e) => {
         const file = e.target.files[0]
         if (!file) return
         setSelectedFile(file)
@@ -75,7 +94,14 @@ const ChatWindow = () => {
             }
         }
         fetchMessages();
+        loadDocuments();
     }, [selectedChat])
+
+    useEffect(() => {
+        messagesEndRef.current?.scrollIntoView({
+            behaviour: "smooth"
+        })
+    }, [messages])
 
     const handleSend = async () => {
         if (!input.trim() || !selectedChat) return;
@@ -96,6 +122,7 @@ const ChatWindow = () => {
                 content: response.data.answer,
                 sources: response.data.sources
             })
+            updateChatTitle(selectedChat.id,response.data.chat_title)
         } catch (error) {
             console.error("Error sending messages to the bot", error)
             addMessage({
@@ -112,18 +139,45 @@ const ChatWindow = () => {
         <div className="flex flex-col h-screen bg-[#f5eee6]">
 
             {
-
                 selectedChat ?
-
                     <>
-
                         <div className="p-6 border-b border-[#d6ccc2]">
+                             <div className="flex items-center gap-4">
+                                <button
+                                    className="md:hidden text-3xl text-[#7f5539]"
+                                    onClick={() => setSidebarOpen(true)}
+                                >
+                                    ☰
+                                </button>
 
+                                <h1 className="text-2xl font-bold text-[#6f4518]">
+                                    {selectedChat.title}
+                                </h1>
+
+                            </div>
                             <h1 className="text-2xl font-bold text-[#6f4518]">
-
                                 {selectedChat.title}
-
                             </h1>
+                            {
+                                documents.length > 0 && (
+
+                                    <div className="mt-4">
+
+                                        <p className="text-sm font-semibold text-[#7f5539] mb-2">
+                                            Documents
+                                        </p>
+                                        <div className="flex flex-wrap gap-2">
+                                            {
+                                                documents.map((doc) => (
+                                                    <div key={doc.id} className="px-3 py-1 bg-[#ede0d4] rounded-full text-sm text-[#6f4518] border border-[#d6ccc2]">
+                                                        📄 {doc.filename}
+                                                    </div>
+                                                ))
+                                            }
+                                        </div>
+                                    </div>
+                                )
+                            }
 
                         </div>
 
@@ -132,51 +186,99 @@ const ChatWindow = () => {
                         <div className="flex-1 overflow-y-auto p-6 space-y-4">
 
                             {
+                                messages.length === 0 ?
+                                    (
+                                        <div className="h-full flex items-center justify-center">
 
-                                messages.map((message, index) => (
+                                            <div className="text-center max-w-md">
 
-                                    <div key={index} className={`max-w-[75%] px-4 py-3 rounded-2xl ${message.role === "user" ? "ml-auto bg-[#7f5539] text-white":"bg-[#ede0d4] text-[#3d2b1f]"}`}>
-                                        <div>
-                                            {message.content}
-                                        </div>
-                                        {
-                                            message.role === "assistant"
-                                            &&
-                                            message.sources
-                                            &&
-                                            message.sources.length > 0
-                                            &&
-                                            <div className="mt-4 pt-3 border-t border-[#c9b8a8]">
-                                                <p className="text-xs font-semibold uppercase tracking-wide opacity-70 mb-2">
-                                                    Sources
+                                                <div className="text-6xl mb-6">
+
+                                                    📄
+
+                                                </div>
+
+                                                <h2 className="text-2xl font-bold text-[#6f4518] mb-4">
+
+                                                    Upload PDFs and Start Chatting
+
+                                                </h2>
+
+                                                <p className="text-[#7f5539] mb-6">
+
+                                                    Ask questions about research papers,
+                                                    books, notes, resumes, reports,
+                                                    or any PDF document.
+
                                                 </p>
-                                                {
-                                                    message.sources.map((source, idx) => (
-                                                        <div key={idx} className=" text-sm py-1">
-                                                            📄
-                                                            {" "}
-                                                            {source.source}
-                                                            {" "}
-                                                            <span className="opacity-70">
-                                                                (Page {source.page})
-                                                            </span>
-                                                        </div>
-                                                    ))
-                                                }
-                                            </div>
-                                        }
-                                    </div>
-                                ))
-                            }
 
+                                                {
+
+                                                    documents.length === 0 &&
+
+                                                    <div className="bg-[#ede0d4] rounded-2xl p-4 text-[#6f4518]">
+
+                                                        No PDFs uploaded yet.
+
+                                                        <br />
+
+                                                        Click 📎 below to upload one.
+
+                                                    </div>
+
+                                                }
+
+                                            </div>
+
+                                        </div>
+                                    )
+
+                                    : (messages.map((message, index) => (
+
+                                        <div key={index} className={`max-w-[75%] px-4 py-3 rounded-2xl ${message.role === "user" ? "ml-auto bg-[#7f5539] text-white" : "bg-[#ede0d4] text-[#3d2b1f]"}`}>
+                                            <div>
+                                                {message.content}
+                                            </div>
+                                            {
+                                                message.role === "assistant"
+                                                &&
+                                                message.sources
+                                                &&
+                                                message.sources.length > 0
+                                                &&
+                                                <div className="mt-4 pt-3 border-t border-[#c9b8a8]">
+                                                    <p className="text-xs font-semibold uppercase tracking-wide opacity-70 mb-2">
+                                                        Sources
+                                                    </p>
+                                                    {
+                                                        message.sources.map((source, idx) => (
+                                                            <div key={idx} className=" text-sm py-1">
+                                                                📄
+                                                                {" "}
+                                                                {source.source}
+                                                                {" "}
+                                                                <span className="opacity-70">
+                                                                    (Page {source.page})
+                                                                </span>
+                                                            </div>
+                                                        ))
+                                                    }
+                                                </div>
+                                            }
+                                        </div>
+                                    )))
+                            }
+                            <div ref={messagesEndRef}></div>
 
 
                             {
-
-                                loading &&
-                                <div className="max-w-[75%] px-4 py-3 rounded-2xl bg-[#ede0d4] text-[#3d2b1f]">
-                                    Thinking...
-                                </div>
+                                loading && (
+                                    <div className="flex justify-start mb-4">
+                                        <div className=" bg-[#ede0d4] px-4 py-3 rounded-2xl text-[#6f4518] max-w-xs animate-pulse">
+                                            Thinking...
+                                        </div>
+                                    </div>
+                                )
                             }
                         </div>
 
@@ -184,10 +286,10 @@ const ChatWindow = () => {
                             {
                                 selectedFile && (
                                     <div className="mb-3 inline-flex items-center gap-2 bg-[#ede0d4] text-[#6f4518] px-4 py-2 rounded-full text-sm font-medium">
-                                       📄 {selectedFile.name}
+                                        📄 {selectedFile.name}
                                         <span className="ml-2 text-xs">
                                             {
-                                                uploading   ? "Uploading...":"✓ Uploaded"
+                                                uploading ? "Uploading..." : "✓ Uploaded"
                                             }
                                         </span>
                                     </div>
@@ -229,10 +331,30 @@ const ChatWindow = () => {
                         </div>
                     </>
                     :
-                    <div className="flex h-full items-center justify-center">
-                        <h1 className="text-2xl text-[#7f5539]">
-                            Select a chat
-                        </h1>
+                    <div className="flex flex-1 items-center justify-center">
+
+                        <div className="text-center">
+
+                            <div className="text-6xl mb-6">
+
+                                ☕📄
+
+                            </div>
+
+                            <h1 className="text-3xl font-bold text-[#6f4518] mb-3">
+
+                                Welcome to DocRAG
+
+                            </h1>
+
+                            <p className="text-[#7f5539] text-lg">
+
+                                Create a chat and upload PDFs to start asking questions.
+
+                            </p>
+
+                        </div>
+
                     </div>
             }
         </div>
