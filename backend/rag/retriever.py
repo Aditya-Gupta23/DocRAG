@@ -10,5 +10,5 @@ db=Chroma(
     collection_name=COLLECTION_NAME
 )
 
-def retrieve_documents(query, chat_id ,k=3):
-    return db.similarity_search(query, k=k,filter={"chat_id":str(chat_id)})
+def retrieve_documents(query, chat_id ,k=4):
+    return db.max_marginal_relevance_search(query, k=k,fetch_k=10,filter={"chat_id":str(chat_id)})

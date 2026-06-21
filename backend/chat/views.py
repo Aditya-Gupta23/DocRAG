@@ -12,7 +12,7 @@ from .models import Chat,Message,Document
 from django.shortcuts import get_object_or_404
 
 from rag.query import ask_question
-from rag.ingest import ingest_pdf
+from rag.ingest import ingest_pdf,delete_chat_embeddings
 
 chat_history=[]
 
@@ -153,6 +153,7 @@ class ChatDeleteView(APIView):
             id=chat_id,
             user=request.user
         )
+        delete_chat_embeddings(chat.id)
         chat.delete()
         return Response({
             "message":"chat deleted sucessfully"

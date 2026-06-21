@@ -14,8 +14,8 @@ def ingest_pdf(pdf_path,chat_id):
     loader=PyPDFLoader(pdf_path)
     documents=loader.load()
     splitter=RecursiveCharacterTextSplitter(
-        chunk_size=500,
-        chunk_overlap=100
+        chunk_size=800,
+        chunk_overlap=150
     )
     chunks=splitter.split_documents(documents)
     for chunk in chunks:
@@ -34,3 +34,19 @@ def ingest_pdf(pdf_path,chat_id):
 
     db.add_documents(chunks)
     return len(chunks)
+
+def delete_chat_embeddings(chat_id):
+    db=Chroma(
+        persist_directory=CHROMA_PATH,
+        embedding_function=embeddings,
+        collection_name=COLLECTION_NAME
+    )
+    results=db.get(
+        where={
+            "chat_id":str(chat_id)
+        }
+    )
+    ids=results.get("ids",[])
+    if ids:
+        db.delete(ids=ids)
+        print(f"Deleted {len(ids)} embeddings of chat {chat_id}")

@@ -1,6 +1,10 @@
 import { useEffect } from "react";
 import axiosInstance from "../api/axios";
 import useChatStore from "../store/chatStore";
+import toast from "react-hot-toast";
+import useAuthStore from "../store/authStore";
+import { Trash2,BookOpenText } from "lucide-react";
+
 
 const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
 
@@ -11,10 +15,13 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
   const selectedChat = useChatStore((state) => state.selectedChat)
   const messages = useChatStore((state) => state.messages)
   const deleteChat = useChatStore((state) => state.deleteChat)
+  const clearChatState = useChatStore((state) => state.clearChatState);
+
+  const logout=useAuthStore((state)=>state.logout)
 
   const handleNewChat = async () => {
     if (selectedChat && messages.length == 0) {
-      alert("you are already in a new chat")
+      toast("☕ You are already in a new chat");
       return
     }
     try {
@@ -32,6 +39,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
       if (selectedChat?.id === chatId) {
         setSelectedChat(null)
       }
+      toast.success("🗑 Chat deleted successfully");
     } catch (error) {
       console.log(error)
     }
@@ -58,8 +66,8 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
 
       <div className="flex items-center justify-between mb-8">
 
-        <h1 className="text-3xl font-bold text-[#7f5539]">
-          📚 DocRAG
+        <h1 className="flex items-center gap-2 text-3xl font-bold text-[#7f5539]">
+          <span><BookOpenText size={36} /></span>DocRAG
         </h1>
 
         <button
@@ -119,34 +127,29 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
             </div>
 
             <button
-
-                onClick={(e)=>{
-
-                    e.stopPropagation()
-
+              onClick={(e) => {
+                  e.stopPropagation();
+                  const confirmed=window.confirm("Delete this chat permanently?\n\nThis will remove:\n• Messages\n• Uploaded PDFs\n• Embeddings");
+                  if(confirmed){
                     handleDeleteChat(chat.id)
-
-                }}
-
-                className="ml-3 hover:scale-110 transition"
-
-            >
-
-                🗑️
-
-            </button>
-
+                  }
+              }}
+              className="ml-3 p-1 rounded hover:bg-red-100 hover:text-red-600 transition-all duration-200"
+          >
+              <Trash2 size={18} />
+              </button>
         </div>
-
     ))
-
 }
-
 </div>
-
-
-
       <button
+        onClick={()=>{
+          const confirmed=window.confirm("Aare you sure you want to logout")
+          if(confirmed){
+            clearChatState();
+            logout();
+          }
+        }}
 
         className="w-full py-3 rounded-xl border border-[#7f5539] text-[#7f5539] hover:bg-[#7f5539] hover:text-white transition"
 

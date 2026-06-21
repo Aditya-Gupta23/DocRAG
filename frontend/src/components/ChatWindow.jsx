@@ -1,6 +1,7 @@
 import useChatStore from "../store/chatStore";
 import { useEffect, useState, useRef } from "react";
 import axiosInstance from "../api/axios";
+import { FileText,Upload } from 'lucide-react';
 
 
 const ChatWindow = ({setSidebarOpen}) => {
@@ -39,7 +40,6 @@ const ChatWindow = ({setSidebarOpen}) => {
     const handleFileClick = () => {
         fileInputRef.current.click()
     }
-
 
     const uploadPdf = async (file) => {
         if (!selectedChat) {
@@ -82,13 +82,16 @@ const ChatWindow = ({setSidebarOpen}) => {
         await uploadPdf(file);
     }
 
+    
+
     useEffect(() => {
         if (!selectedChat) return;
+        // setSelectedFile(null);
         const fetchMessages = async () => {
+            setSelectedFile(null);
             try {
                 const response = await axiosInstance.get(`/chats/${selectedChat.id}/messages/`);
                 setMessages(response.data);
-
             } catch (error) {
                 console.error(error);
             }
@@ -136,8 +139,7 @@ const ChatWindow = ({setSidebarOpen}) => {
 
     return (
 
-        <div className="flex flex-col h-screen bg-[#f5eee6]">
-
+            <div className="flex flex-col flex-1 h-screen bg-[#f5eee6] w-full">
             {
                 selectedChat ?
                     <>
@@ -155,9 +157,7 @@ const ChatWindow = ({setSidebarOpen}) => {
                                 </h1>
 
                             </div>
-                            <h1 className="text-2xl font-bold text-[#6f4518]">
-                                {selectedChat.title}
-                            </h1>
+
                             {
                                 documents.length > 0 && (
 
@@ -170,7 +170,8 @@ const ChatWindow = ({setSidebarOpen}) => {
                                             {
                                                 documents.map((doc) => (
                                                     <div key={doc.id} className="px-3 py-1 bg-[#ede0d4] rounded-full text-sm text-[#6f4518] border border-[#d6ccc2]">
-                                                        📄 {doc.filename}
+                                                        <FileText />
+                                                             {doc.filename}
                                                     </div>
                                                 ))
                                             }
@@ -192,9 +193,10 @@ const ChatWindow = ({setSidebarOpen}) => {
 
                                             <div className="text-center max-w-md">
 
-                                                <div className="text-6xl mb-6">
+                                                <div className="flex justify-center text-6xl mb-6">
+                                                    <FileText size={50} color="#7f5539" />
 
-                                                    📄
+                                                    {/* 📄 */}
 
                                                 </div>
 
@@ -213,19 +215,12 @@ const ChatWindow = ({setSidebarOpen}) => {
                                                 </p>
 
                                                 {
-
                                                     documents.length === 0 &&
-
-                                                    <div className="bg-[#ede0d4] rounded-2xl p-4 text-[#6f4518]">
-
-                                                        No PDFs uploaded yet.
-
-                                                        <br />
-
-                                                        Click 📎 below to upload one.
-
+                                                    <div className="bg-[#ede0d4] rounded-2xl p-6 text-[#6f4518] flex flex-col items-center text-center">
+                                                    <p>No PDFs uploaded yet.</p>
+                                                    <Upload size={32} className="my-3" />
+                                                    <p>Click on the icon beside the input to upload one.</p>
                                                     </div>
-
                                                 }
 
                                             </div>
@@ -307,12 +302,16 @@ const ChatWindow = ({setSidebarOpen}) => {
                                     onClick={handleFileClick}
                                     className="px-4 py-3 rounded-xl bg-[#ede0d4] hover:bg-[#dbc7b8]"
                                 >
-                                    📎
+                                        <Upload color="#6f4518"/>
+
                                 </button>
                                 <input
                                     type="text"
                                     value={input}
                                     onChange={(e) => setInput(e.target.value)}
+                                    onKeyDown={(e)=>{
+                                        if(e.key==="Enter" && !loading){handleSend();}
+                                    }}
                                     placeholder="Ask something about your documents..."
                                     className="flex-1 px-4 py-3 rounded-xl border border-[#d6ccc2] outline-none"
                                 />

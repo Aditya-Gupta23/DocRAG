@@ -38,6 +38,14 @@ const useChatStore=create((set)=>({
         set((state)=>({
             chats:state.chats.filter((chat)=>chat.id!=chatId)
         }))
+    },
+    clearChatState:()=>{
+        set({
+            chats:[],
+            selectedChat:null,
+            messages:[],
+            documents:[]
+        })
     }
 }))
 
