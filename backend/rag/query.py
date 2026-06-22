@@ -14,7 +14,25 @@ def ask_question(question, chat_history,chat_id):
     )
 
     docs=retrieve_documents(rewritten_query,chat_id)
-    context="\n\n".join(doc.page_content for doc in docs)
+    # context="\n\n".join(doc.page_content for doc in docs)
+    context_parts=[]
+    for doc in docs:
+        source=doc.metadata.get("source","Unknown")
+        page=doc.metadata.get("page",0)+1
+        text=doc.page_content
+        context_parts.append(
+f"""
+Source: {source}
+
+Page: {page}
+
+Content:
+
+{text}
+
+--------------------------------
+""")
+        context="\n".join(context_parts)
 
     answer=generate_answer(
         question=question,

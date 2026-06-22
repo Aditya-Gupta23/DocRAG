@@ -2,6 +2,7 @@ import useChatStore from "../store/chatStore";
 import { useEffect, useState, useRef } from "react";
 import axiosInstance from "../api/axios";
 import { FileText,Upload } from 'lucide-react';
+import ReactMarkdown from "react-markdown"
 
 
 const ChatWindow = ({setSidebarOpen}) => {
@@ -163,14 +164,14 @@ const ChatWindow = ({setSidebarOpen}) => {
 
                                     <div className="mt-4">
 
-                                        <p className="text-sm font-semibold text-[#7f5539] mb-2">
+                                        {/* <p className="text-sm font-semibold text-[#7f5539] mb-2">
                                             Documents
-                                        </p>
+                                        </p> */}
                                         <div className="flex flex-wrap gap-2">
                                             {
                                                 documents.map((doc) => (
                                                     <div key={doc.id} className="px-3 py-1 bg-[#ede0d4] rounded-full text-sm text-[#6f4518] border border-[#d6ccc2]">
-                                                        <FileText />
+                                                        {/* <FileText /> */}
                                                              {doc.filename}
                                                     </div>
                                                 ))
@@ -231,9 +232,10 @@ const ChatWindow = ({setSidebarOpen}) => {
                                     : (messages.map((message, index) => (
 
                                         <div key={index} className={`max-w-[75%] px-4 py-3 rounded-2xl ${message.role === "user" ? "ml-auto bg-[#7f5539] text-white" : "bg-[#ede0d4] text-[#3d2b1f]"}`}>
-                                            <div>
-                                                {message.content}
-                                            </div>
+                                            <ReactMarkdown>
+                                            {message.content}
+                                        </ReactMarkdown>
+
                                             {
                                                 message.role === "assistant"
                                                 &&

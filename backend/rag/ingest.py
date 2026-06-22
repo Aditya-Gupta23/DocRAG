@@ -18,9 +18,10 @@ def ingest_pdf(pdf_path,chat_id):
         chunk_overlap=150
     )
     chunks=splitter.split_documents(documents)
-    for chunk in chunks:
+    for i,chunk in enumerate(chunks):
         chunk.metadata["source"]=source
         chunk.metadata["chat_id"]=str(chat_id)
+        chunk.metadata["chunk_id"]=i
 
     db=Chroma(
         persist_directory=CHROMA_PATH,
