@@ -47,16 +47,6 @@ Rewritten:
 What is the second point of the NATO response?
 ```
 
-Implementation:
-
-```python
-llm = HuggingFaceEndpoint(
-    repo_id="deepseek-ai/DeepSeek-V4-Pro",
-    task="text-generation"
-)
-
-model = ChatHuggingFace(llm=llm)
-```
 
 This significantly improves retrieval quality in multi-turn conversations.
 
@@ -216,6 +206,11 @@ Answer + Source Citations
 ```text
 sentence-transformers/all-MiniLM-L6-v2
 ```
+Running Locally:
+
+```text
+downloaded from  Huggingface
+```
 
 ---
 
@@ -225,17 +220,11 @@ sentence-transformers/all-MiniLM-L6-v2
 deepseek-ai/DeepSeek-V4-Pro
 ```
 
-Implemented using:
+Served using:
 
-```python
-llm = HuggingFaceEndpoint(
-    repo_id="deepseek-ai/DeepSeek-V4-Pro",
-    task="text-generation"
-)
-
-model = ChatHuggingFace(llm=llm)
+```text
+Huggingface Inference API
 ```
-
 ---
 
 ## Generation Model
@@ -301,7 +290,7 @@ src/
 ### Clone Repository
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/Aditya-Gupta23/DocRAG.git
 
 cd DocRAG
 ```
@@ -331,7 +320,7 @@ Add:
 ```text
 GROQ_API_KEY=your_key
 
-HUGGINGFACEHUB_API_TOKEN=your_token
+HF_TOKEN=your_token
 ```
 
 Run:
